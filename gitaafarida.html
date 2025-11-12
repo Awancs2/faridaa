@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>To-Do List Gitaa — Daftar Kegiatan Harian</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root{
+      --pink:#ffb6c1;
+      --rose:#ff6f91;
+      --mint:#bff1d6;
+      --shadow: 0 6px 18px rgba(0,0,0,0.06);
+      --glass: rgba(255,255,255,0.7);
+      font-family: 'Poppins', sans-serif;
+    }
+    body{background: linear-gradient(135deg,#fff8fb 0%, #fffaf0 100%);}
+    .card-cute{border:0;border-radius:18px;box-shadow:var(--shadow);background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));}
+    .app-header{background:linear-gradient(90deg,var(--pink),var(--rose));color:white;border-radius:14px;padding:20px}
+    .app-title{font-weight:700;letter-spacing:0.4px}
+    .cute-badge{background:linear-gradient(90deg,#fff,#ffdfe8);border-radius:12px;padding:6px 10px;font-weight:600;color:#7a2745}
+    .task-item{border-radius:12px;padding:12px;transition:transform .12s ease, box-shadow .12s ease}
+    .task-item:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(122,39,69,0.06)}
+    .task-done{opacity:0.6;text-decoration:line-through}
+    .priority-low{color:#2f9e44}
+    .priority-med{color:#f59f00}
+    .priority-high{color:#d6336c}
+    .empty-ill{opacity:0.6}
+    .rounded-input{border-radius:999px}
+    .floating-add{position:fixed;right:18px;bottom:18px;z-index:999}
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-10 col-lg-8">
+        <div class="card card-cute p-3 p-md-4">
+          <div class="d-flex align-items-center gap-3 app-header mb-3">
+            <div class="me-2">
+              <div class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width:56px;height:56px;box-shadow:0 6px 18px rgba(0,0,0,0.08)">
+                <i class="bi bi-list-stars" style="font-size:26px;color:var(--rose)"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1">
+              <div class="app-title">To-Do List</div>
+              <div style="font-size:13px;opacity:0.95">List harian Gita Cantik✨</div>
+            </div>
+            <div class="text-end">
+              <div class="cute-badge">Untuk aku yang sibuk tapi tetap stylish</div>
+            </div>
+          </div>
+
+          <div class="row g-2 align-items-center mb-3">
+            <div class="col-12 col-md-6">
+              <input id="searchInput" type="search" class="form-control rounded-input" placeholder="Cari tugas... (mis. Belajar, Olahraga)" />
+            </div>
+            <div class="col-6 col-md-3">
+              <select id="filterSelect" class="form-select rounded-input">
+                <option value="all">Semua</option>
+                <option value="active">Belum Selesai</option>
+                <option value="completed">Selesai</option>
+                <option value="today">Hari ini</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3 d-flex gap-2">
+              <button id="clearCompletedBtn" class="btn btn-outline-danger rounded-input w-100" title="Hapus semua selesai"><i class="bi bi-trash"></i> Hapus Selesai</button>
+            </div>
+          </div>
+
+          <form id="taskForm" class="mb-3">
+            <div class="row g-2 align-items-center">
+              <div class="col-12 col-sm-7">
+                <input id="taskInput" class="form-control" placeholder="Tambahkan kegiatan baru... (contoh: Baca buku 30 menit)" required />
+              </div>
+              <div class="col-6 col-sm-3">
+                <input id="dateInput" type="date" class="form-control" />
+              </div>
+              <div class="col-4 col-sm-1">
+                <select id="prioSelect" class="form-select" title="Prioritas">
+                  <option value="low">L</option>
+                  <option value="medium" selected>M</option>
+                  <option value="high">H</option>
+                </select>
+              </div>
+              <div class="col-2 col-sm-1 d-grid">
+                <button class="btn btn-pink btn-sm rounded-input" type="submit" style="background:var(--rose);color:white">Tambah</button>
+              </div>
+            </div>
+          </form>
+
+          <div id="tasksContainer" class="list-group mb-3"></div>
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <div>
+              <small id="statsText" class="text-muted">Belum ada tugas — tambahkan untuk memulai 🌸</small>
+            </div>
+            <div style="width:40%">
+              <div class="progress" style="height:10px;border-radius:999px">
+                <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button id="quickAddBtn" class="btn btn-lg rounded-circle floating-add" style="background:var(--mint);box-shadow:0 8px 20px rgba(0,0,0,0.08)">
+    <i class="bi bi-plus-lg" style="font-size:20px;color:#24523b"></i>
+  </button>
+
+  <div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Tugas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input id="editTaskInput" class="form-control mb-2" />
+          <input id="editDateInput" type="date" class="form-control mb-2" />
+          <select id="editPrioSelect" class="form-select">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button id="saveEditBtn" type="button" class="btn btn-primary">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const taskForm=document.getElementById('taskForm');
+    const taskInput=document.getElementById('taskInput');
+    const dateInput=document.getElementById('dateInput');
+    const prioSelect=document.getElementById('prioSelect');
+    const tasksContainer=document.getElementById('tasksContainer');
+    const statsText=document.getElementById('statsText');
+    const progressBar=document.getElementById('progressBar');
+    const filterSelect=document.getElementById('filterSelect');
+    const searchInput=document.getElementById('searchInput');
+    const clearCompletedBtn=document.getElementById('clearCompletedBtn');
+    const quickAddBtn=document.getElementById('quickAddBtn');
+
+    const editModalEl=document.getElementById('editModal');
+    const editTaskInput=document.getElementById('editTaskInput');
+    const editDateInput=document.getElementById('editDateInput');
+    const editPrioSelect=document.getElementById('editPrioSelect');
+    const saveEditBtn=document.getElementById('saveEditBtn');
+    const bsEditModal=new bootstrap.Modal(editModalEl);
+
+    let tasks=JSON.parse(localStorage.getItem('cute_tasks')||'[]');
+    let editingId=null;
+
+    function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+    function save(){localStorage.setItem('cute_tasks',JSON.stringify(tasks));}
+    function addTask(text,date=null,prio='medium'){tasks.unshift({id:uid(),text,date,prio,done:false,created:Date.now()});save();render();}
+    function updateTask(id,fields){tasks=tasks.map(t=>t.id===id?{...t,...fields}:t);save();render();}
+    function removeTask(id){tasks=tasks.filter(t=>t.id!==id);save();render();}
+    function clearCompleted(){tasks=tasks.filter(t=>!t.done);save();render();}
+    function formatDate(d){if(!d)return'';try{const dt=new Date(d);return dt.toLocaleDateString();}catch(e){return d}}
+    function prioBadge(p){if(p==='low')return'<span class="badge bg-light text-success">L</span>';if(p==='medium')return'<span class="badge bg-light text-warning">M</span>';return'<span class="badge bg-light text-danger">H</span>';}
+    function render(){const q=searchInput.value.trim().toLowerCase();const filter=filterSelect.value;tasksContainer.innerHTML='';let shownCount=0;for(const t of tasks){if(filter==='active'&&t.done)continue;if(filter==='completed'&&!t.done)continue;if(filter==='today'){if(!t.date)continue;const today=new Date();const td=new Date(t.date);if(td.getFullYear()!==today.getFullYear()||td.getMonth()!==today.getMonth()||td.getDate()!==today.getDate())continue;}if(q&&!t.text.toLowerCase().includes(q))continue;shownCount++;const li=document.createElement('div');li.className='list-group-item mb-2 task-item d-flex align-items-center justify-content-between';if(t.done)li.classList.add('task-done');const left=document.createElement('div');left.className='d-flex align-items-center gap-3 flex-grow-1';const chk=document.createElement('input');chk.type='checkbox';chk.className='form-check-input';chk.checked=t.done;chk.addEventListener('change',()=>updateTask(t.id,{done:chk.checked}));const content=document.createElement('div');const title=document.createElement('div');title.innerHTML=`<strong>${escapeHtml(t.text)}</strong>`;const meta=document.createElement('div');meta.className='text-muted small';const dateHtml=t.date?` <i class="bi bi-calendar3"></i> ${formatDate(t.date)}`:'';meta.innerHTML=`${prioBadge(t.prio)}${dateHtml}`;content.appendChild(title);content.appendChild(meta);left.appendChild(chk);left.appendChild(content);const right=document.createElement('div');right.className='d-flex align-items-center gap-2';const editBtn=document.createElement('button');editBtn.className='btn btn-sm btn-outline-secondary rounded-pill';editBtn.innerHTML='<i class="bi bi-pencil"></i>';editBtn.addEventListener('click',()=>openEdit(t));const delBtn=document.createElement('button');delBtn.className='btn btn-sm btn-outline-danger rounded-pill';delBtn.innerHTML='<i class="bi bi-trash"></i>';delBtn.addEventListener('click',()=>{if(confirm('Hapus tugas ini?'))removeTask(t.id);});right.appendChild(editBtn);right.appendChild(delBtn);li.appendChild(left);li.appendChild(right);tasksContainer.appendChild(li);}const total=tasks.length;const done=tasks.filter(t=>t.done).length;if(total===0){statsText.innerHTML='Belum ada tugas — tambahkan untuk memulai 🌸';}else{statsText.innerHTML=`${done}/${total} selesai • Menampilkan ${shownCount} tugas`;}const pct=total===0?0:Math.round((done/total)*100);progressBar.style.width=pct+'%';progressBar.setAttribute('aria-valuenow',pct);save();}
+    function escapeHtml(s){return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
+    taskForm.addEventListener('submit',e=>{e.preventDefault();const text=taskInput.value.trim();if(!text)return;addTask(text,dateInput.value||null,prioSelect.value||'medium');taskForm.reset();taskInput.focus();});
+    quickAddBtn.addEventListener('click',()=>{window.scrollTo({top:0,behavior:'smooth'});taskInput.focus();});
+    searchInput.addEventListener('input',render);
+    filterSelect.addEventListener('change',render);
+    clearCompletedBtn.addEventListener('click',()=>{if(confirm('Hapus semua tugas yang sudah selesai?'))clearCompleted();});
+    function openEdit(task){editingId=task.id;editTaskInput.value=task.text;editDateInput.value=task.date||'';editPrioSelect.value=task.prio||'medium';bsEditModal.show();}
+    saveEditBtn.addEventListener('click',()=>{const newText=editTaskInput.value.trim();if(!newText)return alert('Teks tugas tidak boleh kosong');updateTask(editingId,{text:newText,date:editDateInput.value||null,prio:editPrioSelect.value});bsEditModal.hide();});
+    render();
+  </script>
+</body>
+</html>
